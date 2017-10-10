@@ -1,6 +1,7 @@
 import subprocess
 import random
 import re
+import json
 
 
 positions = range(10)
@@ -17,8 +18,9 @@ def play(game):
   #print(game)
   game_size = len(game)
   solution =  random_solution(game_size) #'0:0;'
-  score = subprocess.check_output(['node', '../dan/tetris/tetris-eval.js', '--pieces', game, '--moves', solution])
-  score = int(score)
+  result = subprocess.check_output(['node', '../dan/tetris/tetris-eval.js', '--pieces', game, '--moves', solution])
+  game_result = json.loads(result.decode('utf-8'))
+  score = game_result['score']
   
   return score, solution
 
@@ -31,7 +33,7 @@ if __name__ == '__main__':
       best_score = 0
       best_solution = ''
 
-      for i in range(50):
+      for i in range(200):
         score, solution = play(line)
         if score > best_score:
           best_score = score
@@ -42,7 +44,7 @@ if __name__ == '__main__':
       game_id += 1
       #break  #test first game for now
 
-  with open('submission.csv', 'w+') as out:
+  with open('submissions\submission_random_200.csv', 'w+') as out:
     out.write('game,moves\n')
     for i,solution in enumerate(solutions):
       out.write('{},"{}"\n'.format(i,solution))
