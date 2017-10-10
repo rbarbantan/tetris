@@ -35,7 +35,6 @@ def play_game(g):
 
         reward = np.zeros(tetris.ACTION_SIZE)
         reward[action] = r
-        #score = game.score
 
         x.append(state)
         y.append(reward)

@@ -2,6 +2,9 @@ import numpy as np
 import copy
 import cProfile
 
+'''
+    converted from https://github.com/danmana/tetris 
+'''
 # Block shapes
 SHAPES = {
     'I': [[0, 0, 0, 0], [1, 1, 1, 1], [0, 0, 0, 0], [0, 0, 0, 0]],
@@ -17,23 +20,12 @@ SHAPES = {
 #Define 10x20 grid as the board
 GRID_W = 10
 GRID_H = 20
-EMPTY_ROW = np.zeros(GRID_W) #[0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-EMPTY_GRID = np.zeros((GRID_W, GRID_H))
-MOVE_SEPARATOR = ';'
-MOVE_PART_SEPARATOR = ':'
 STATE_SIZE = (24,10)
 ACTION_SIZE = 48
 
-'''
-* Bound the x position based on the min/max posiion where the shape can be placed (such that it doesn't go outside the grid)
-* @param shape
-* @param x
-* @returns {x: number} bounded x position
-'''
 
-
-def getBoundedX(shape, x):
-    bounds = getShapePositionBounds(shape)
+def get_bounded_x(shape, x):
+    bounds = get_shape_position_bounds(shape)
     if x < bounds['min']:
         return bounds['min']
 
@@ -42,12 +34,8 @@ def getBoundedX(shape, x):
 
     return x
 
-'''
-* Get the min/max positions where this shape could be placed such that it doesn't go outside the gird.
-* @param shape
-* @returns {{min: number, max: number}}
-'''
-def getShapePositionBounds(shape):
+
+def get_shape_position_bounds(shape):
     minX = GRID_W
     maxX = 0
     for i in range(len(shape)):
@@ -59,13 +47,7 @@ def getShapePositionBounds(shape):
     return {'min': -minX, 'max': GRID_W - 1 - maxX}
 
 
-'''
-* Check if placing the shape at this row causes a loss (the shape is outside the grid)
-* @param shape
-* @param y
-* @returns {boolean}
-'''
-def isLoss(shape, y):
+def is_loss(shape, y):
 
     for i in range(len(shape)):
         for j in range(len(shape)):
@@ -97,32 +79,30 @@ class Tetris:
         shape = self.rotate(shape, rot)
 
         # bound the X so the shape is in the grid
-        x = getBoundedX(shape, x)
+        x = get_bounded_x(shape, x)
 
         # find where the shape drops
-        y = self.getDropLocation(shape, x)
+        y = self.get_drop_location(shape, x)
 
-        if isLoss(shape, y):
+        if is_loss(shape, y):
           self.lost = True
-          self.score -= 1000
+          #self.score -= 1000
         else:
           self.score += 1
-          self.applyShape(shape, x, y)
+          self.apply_shape(shape, x, y)
           if not is_test:
-              self.score += self.clearRows()
+              self.score += self.clear_rows()
 
           self.shapeIndex += 1
           if self.shapeIndex >= len(self.nextShapes):
             self.won = True
-            #self.score += 1000
-
 
     '''
        * Clear all filled rows
        * @param grid
        * @returns {number} the score from clearing rows
     '''
-    def clearRows(self):
+    def clear_rows(self):
         cleared = 0
         score = 0
         for i in range(GRID_H):
@@ -155,7 +135,7 @@ class Tetris:
     * @param x
     * @param y
     '''
-    def applyShape(self, shape, x, y):
+    def apply_shape(self, shape, x, y):
         for i in range(len(shape)):
             for j in range(len(shape[i])):
                 if shape[i][j]:
@@ -169,8 +149,7 @@ class Tetris:
     * @param x
     * @returns {number}
     '''
-
-    def getDropLocation(self, shape, x):
+    def get_drop_location(self, shape, x):
         for i in range(-len(shape), GRID_H):
             if self.collides(shape, x, i):
                 return i - 1
@@ -222,45 +201,24 @@ class Tetris:
 
         return matrix
 
-    '''
-    * Parse a moves string into an array of moves.
-    * @param val
-    * @returns {Array}
-    '''
-    def parseMoves(self, val):
-        moves = []
-        moveStrings = val.split(MOVE_SEPARATOR)
-        for i in moveStrings:
-          parts = i.split(MOVE_PART_SEPARATOR);
-          moves.append({
-            'x': int(parts[0]),
-            'rot': int(parts[1])
-          })
-
-        return moves
 
 def encode_piece(piece):
     encoded = np.zeros(7)
     encoded['IJLOSTZ'.index(piece)] = 1
     return encoded
 
-'''
-  Tetris.SHAPE_NAMES = 'IJLOSTZ';
-  Tetris.SHAPES = SHAPES;
-  Tetris.GRID_W = GRID_W;
-  Tetris.GRID_H = GRID_H;
-'''
 
 def test():
     g = Tetris('ILILILILILILILILILILILILILILILILILILILILILILILILILIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII')
     for x in range(50):
         g.make_move(0,1)
 
+
 if __name__ == '__main__':
     #game = Tetris('IIL')
     #game.make_move(0, 1)
     #game.make_move(4, 0)
-    cProfile.run('test()')
-    #game.make_move(8, 1)
     #print(game.grid)
     #print(game.grid.shape)
+    cProfile.run('test()')
+

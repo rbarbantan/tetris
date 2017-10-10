@@ -80,18 +80,5 @@ def predict():
             submission.write('{}\n'.format(result))
 
 
-
 if __name__ == '__main__':
-    '''action_history = []
-    input = 'OOTLIIOLJIOSSSSJIJSJIJSLTJTISZSTSLZIIIOLSLISOJLOILTLIZOTTSTTIJZTOSOLJOZIJOLJZZZTSZJJJOJOOOTZLZLOIZJJ'
-    game = tetris.Tetris(input)
-    player = Player(game)
-    for i in range(len(input)):
-        if not (game.won or game.lost):
-            action = player.propose_move()
-            move = ((action % 12)-1, int(action/12))
-            game.make_move(move[0], move[1])
-            action_history.append(move)
-    print(game.won, game.lost, game.score)
-    print(';'.join(['{}:{}'.format(a,b) for a,b in action_history]))'''
     predict()

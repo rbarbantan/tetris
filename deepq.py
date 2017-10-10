@@ -2,16 +2,14 @@ from collections import deque
 import os
 import numpy as np
 import random
-import subprocess
-import json
 import tetris
 import player
 import matplotlib.pyplot as plt
-import keras
 import model
 
 os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
 os.environ['CUDA_VISIBLE_DEVICES'] = ''
+
 
 class Game:
     def __init__(self):
@@ -43,8 +41,8 @@ class Game:
         self.state = (self.state > 0).astype(np.int8)
 
         old_score = self.score
-        self.score = self.tetris.score#self.get_score(self.tetris.score)
-        #print(self.score - old_score)
+        self.score = self.tetris.score
+
         self.frame += 1
 
         return self.state, self.score - old_score, self.tetris.won or self.tetris.lost
@@ -77,7 +75,7 @@ class Env:
                     ceiling = True
 
         agg_height = np.sum(heights)
-        # lines = int((game.score - old_Score)/ 100)
+
         lines = 0
         for row in self.env.tetris.grid:
             if len(np.flatnonzero(row)) == len(row):
@@ -103,8 +101,6 @@ class Env:
 
         return delta
 
-
-
     def run(self):
         try:
             average_score = 0
@@ -114,19 +110,13 @@ class Env:
             for index_episode in range(self.episodes):
                 print('runing episode %d' % index_episode)
                 state = self.env.reset()
-                #state = np.reshape(state, [1, self.state_size])
                 self.agent.game = self.env.tetris
                 done = False
 
                 while not done:
-                    #                    self.env.render()
                     action = self.agent.act(state)
                     reward = player.score_move(self.agent.game, action)
                     next_state, _, done = self.env.step(action)
-                    #reward = (reward + 1000)/2000
-                    #reward = self.__engineered_reward()
-
-                    #next_state = np.reshape(next_state, [1, self.state_size])
                     self.agent.remember(state, action, reward, next_state, done)
                     state = next_state
 
@@ -137,7 +127,7 @@ class Env:
                 #if index_episode == 200:
                 #    np.save('eval_data.npy', self.agent.memory)
                 #    print('saved evaluation data')
-                if index_episode % 5 == 0:
+                if index_episode % 50 == 0:
                     delta = self.__evaluate_model(eval_memory)
                     print('off by %f' % delta)
                     print(self.env.inputs)
@@ -145,14 +135,12 @@ class Env:
                     print(self.env.tetris.score)
                     print(self.agent.exploration_rate)
                     print("average %d" % (average_score/50))
-                    score_chart[index_episode] = delta #average_score/50
+                    score_chart[index_episode] = delta
                     average_score = 0
 
                     tochart = sorted(score_chart.items())
                     x,y = zip(*tochart)
                     plt.plot(x,y)
-                    #plt.bar(range(len(score_chart)), score_chart.values(), align='center')
-                    #plt.xticks(range(len(score_chart)), list(score_chart.keys()))
                     plt.savefig('score_char.png')
                     plt.gcf().clear()
                     #plt.show()
@@ -173,8 +161,8 @@ class Agent():
         self.exploration_min    = 0.01
         self.exploration_decay  = 0.99995
         self.brain              = model.build_model()
-        #self.brain.load_weights(self.weight_backup)#keras.models.load_model('model_0001.h5')
-        self.target             = model.build_model()#keras.models.load_model('model_0001.h5')#model.build_model()
+        #self.brain.load_weights(self.weight_backup)
+        self.target             = model.build_model()
         #self.target.load_weights(self.weight_backup)
         self.game = None
 
@@ -185,7 +173,6 @@ class Agent():
         for i in range(len(target_weights)):
             target_weights[i] = weights[i]
         self.target.set_weights(target_weights)
-        #print(self.target.metrics[0])
 
     def save_model(self):
         self.brain.save(self.weight_backup)
